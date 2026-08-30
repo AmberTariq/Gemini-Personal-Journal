@@ -227,6 +227,31 @@ st.markdown("""
         margin-bottom: 16px !important;
         box-shadow: 0px 4px 10px rgba(161, 140, 209, 0.1) !important;
     }
+
+    /* Mood radio buttons: `accent-color` is a native CSS property that
+       themes the browser's own radio/checkbox rendering directly. It's a
+       better fit here than another selector hunt through Streamlit's
+       internal markup (the eye-icon fix earlier had to fight that same
+       battle) — this works regardless of exactly how the input is nested. */
+    input[type="radio"] {
+        accent-color: #a18cd1 !important;
+        width: 18px !important;
+        height: 18px !important;
+    }
+
+    /* Reflection form card — same st.container(key=...) pattern as the
+       login card, so the styling actually wraps the widgets inside it. */
+    div.st-key-reflection_card {
+        background-color: rgba(255, 255, 255, 0.45) !important;
+        border-radius: 24px !important;
+        border: 2px solid rgba(255, 255, 255, 0.6) !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        padding: 32px !important;
+        box-shadow: 0px 10px 30px rgba(161, 140, 209, 0.2) !important;
+        margin-top: 12px;
+        margin-bottom: 24px;
+    }
     
     /* Info alert element boxes */
     div[data-testid="stNotification"] {
@@ -358,99 +383,100 @@ def get_gemini_client():
 
 client = get_gemini_client()
 
-st.subheader("✍️ Capture Your Reflections")
-entry_text = st.text_area(label="Reflection Input Window", label_visibility="collapsed", placeholder="Write down your starry thoughts here...", height=150)
+with st.container(key="reflection_card"):
+    st.subheader("✍️ Capture Your Reflections")
+    entry_text = st.text_area(label="Reflection Input Window", label_visibility="collapsed", placeholder="Write down your starry thoughts here...", height=150)
 
-# --- LIVE WORD COUNTER + AUTO-EXPAND ---
-# This intentionally does NOT go through Python/session_state, because
-# st.text_area only triggers a rerun on blur or Ctrl+Enter — a counter
-# driven by Python would lag behind every keystroke, not feel "live".
-# Instead: plain JS listens to the real <textarea>'s own `input` event,
-# found by its placeholder text (which we control, unlike third-party
-# icon markup), so it updates on every keystroke with zero rerun cost.
-components.html("""
-<script>
-(function() {
-    const doc = window.parent.document;
-    const PLACEHOLDER = "Write down your starry thoughts here...";
-    const MIN_HEIGHT = 150;   // matches the height= passed to st.text_area
-    const MAX_HEIGHT = 500;   // cap so it can't grow forever
+    # --- LIVE WORD COUNTER + AUTO-EXPAND ---
+    # This intentionally does NOT go through Python/session_state, because
+    # st.text_area only triggers a rerun on blur or Ctrl+Enter — a counter
+    # driven by Python would lag behind every keystroke, not feel "live".
+    # Instead: plain JS listens to the real <textarea>'s own `input` event,
+    # found by its placeholder text (which we control, unlike third-party
+    # icon markup), so it updates on every keystroke with zero rerun cost.
+    components.html("""
+    <script>
+    (function() {
+        const doc = window.parent.document;
+        const PLACEHOLDER = "Write down your starry thoughts here...";
+        const MIN_HEIGHT = 150;   // matches the height= passed to st.text_area
+        const MAX_HEIGHT = 500;   // cap so it can't grow forever
 
-    function setup() {
-        const textareas = doc.querySelectorAll('textarea[placeholder="' + PLACEHOLDER + '"]');
-        textareas.forEach(ta => {
-            if (ta.dataset.liveCounterAttached) return;
-            ta.dataset.liveCounterAttached = "true";
+        function setup() {
+            const textareas = doc.querySelectorAll('textarea[placeholder="' + PLACEHOLDER + '"]');
+            textareas.forEach(ta => {
+                if (ta.dataset.liveCounterAttached) return;
+                ta.dataset.liveCounterAttached = "true";
 
-            ta.style.resize = "none";           // manual resize would fight the auto-expand
-            ta.style.overflowY = "hidden";
-            ta.style.minHeight = MIN_HEIGHT + "px";
-            ta.style.transition = "height 0.15s ease";
+                ta.style.resize = "none";           // manual resize would fight the auto-expand
+                ta.style.overflowY = "hidden";
+                ta.style.minHeight = MIN_HEIGHT + "px";
+                ta.style.transition = "height 0.15s ease";
 
-            const counter = doc.createElement("div");
-            counter.style.cssText = "font-size:0.85rem;color:#6c538c;text-align:right;" +
-                "margin-top:6px;margin-bottom:12px;font-family:'Helvetica Neue',Arial,sans-serif;";
-            ta.parentElement.insertAdjacentElement("afterend", counter);
+                const counter = doc.createElement("div");
+                counter.style.cssText = "font-size:0.85rem;color:#6c538c;text-align:right;" +
+                    "margin-top:6px;margin-bottom:12px;font-family:'Helvetica Neue',Arial,sans-serif;";
+                ta.parentElement.insertAdjacentElement("afterend", counter);
 
-            function updateCounter() {
-                const text = ta.value.trim();
-                const words = text.length ? text.split(/\\s+/).length : 0;
-                const chars = ta.value.length;
-                counter.textContent = words + " words \\u00B7 " + chars + " characters";
-            }
-
-            function autoExpand() {
-                ta.style.height = "auto";
-                const next = Math.min(Math.max(ta.scrollHeight, MIN_HEIGHT), MAX_HEIGHT);
-                ta.style.height = next + "px";
-                ta.style.overflowY = ta.scrollHeight > MAX_HEIGHT ? "auto" : "hidden";
-            }
-
-            ta.addEventListener("input", () => { updateCounter(); autoExpand(); });
-            updateCounter();
-        });
-    }
-
-    setup();
-    const observer = new MutationObserver(setup);
-    observer.observe(doc.body, { childList: true, subtree: true });
-})();
-</script>
-""", height=0)
-
-selected_mood = st.radio(
-    "How are you feeling?",
-    options=list(MOOD_OPTIONS.keys()),
-    horizontal=True,
-)
-
-if st.button("Securely Save & Summarize"):
-    if not entry_text.strip():
-        st.error("Please write something first.")
-    else:
-        with st.spinner("Letting Gemini read the stars..."):
-            try:
-                config = types.GenerateContentConfig(
-                    system_instruction="You are a secure journal summary bot. Provide a highly concise, warm, empathetic one-sentence summary of the user's entry.",
-                    temperature=0.4
-                )
-                response = client.models.generate_content(
-                    model='gemini-3.5-flash',
-                    contents=entry_text,
-                    config=config
-                )
-                
-                entry_data = {
-                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-                    "content": entry_text,
-                    "summary": response.text,
-                    "mood": selected_mood,
+                function updateCounter() {
+                    const text = ta.value.trim();
+                    const words = text.length ? text.split(/\\s+/).length : 0;
+                    const chars = ta.value.length;
+                    counter.textContent = words + " words \\u00B7 " + chars + " characters";
                 }
-                st.session_state.journal_db[username].append(entry_data)
-                st.success("Your thoughts have been safely archived.")
-                st.info(f"✨ **Gemini Reflection:** {response.text}")
-            except Exception as e:
-                st.error(f"Secure processing error: {str(e)}")
+
+                function autoExpand() {
+                    ta.style.height = "auto";
+                    const next = Math.min(Math.max(ta.scrollHeight, MIN_HEIGHT), MAX_HEIGHT);
+                    ta.style.height = next + "px";
+                    ta.style.overflowY = ta.scrollHeight > MAX_HEIGHT ? "auto" : "hidden";
+                }
+
+                ta.addEventListener("input", () => { updateCounter(); autoExpand(); });
+                updateCounter();
+            });
+        }
+
+        setup();
+        const observer = new MutationObserver(setup);
+        observer.observe(doc.body, { childList: true, subtree: true });
+    })();
+    </script>
+    """, height=0)
+
+    selected_mood = st.radio(
+        "How are you feeling?",
+        options=list(MOOD_OPTIONS.keys()),
+        horizontal=True,
+    )
+
+    if st.button("Securely Save & Summarize"):
+        if not entry_text.strip():
+            st.error("Please write something first.")
+        else:
+            with st.spinner("Letting Gemini read the stars..."):
+                try:
+                    config = types.GenerateContentConfig(
+                        system_instruction="You are a secure journal summary bot. Provide a highly concise, warm, empathetic one-sentence summary of the user's entry.",
+                        temperature=0.4
+                    )
+                    response = client.models.generate_content(
+                        model='gemini-3.5-flash',
+                        contents=entry_text,
+                        config=config
+                    )
+                
+                    entry_data = {
+                        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                        "content": entry_text,
+                        "summary": response.text,
+                        "mood": selected_mood,
+                    }
+                    st.session_state.journal_db[username].append(entry_data)
+                    st.success("Your thoughts have been safely archived.")
+                    st.info(f"✨ **Gemini Reflection:** {response.text}")
+                except Exception as e:
+                    st.error(f"Secure processing error: {str(e)}")
 
 st.markdown("---")
 st.subheader("📚 Saved Memories")
