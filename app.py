@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 from google import genai
 from google.genai import types
 import time
@@ -78,6 +79,15 @@ st.markdown("""
     div[data-baseweb="input"] button svg {
         display: none !important;
     }
+    /* The ligature text ("visibility") sits on a descendant element that sets
+       its OWN font-size explicitly — an inherited font-size: 0 on the parent
+       button does NOT override that. So we target every descendant directly. */
+    div[data-baseweb="input"] button * {
+        font-size: 0 !important;
+        line-height: 0 !important;
+        color: transparent !important;
+        opacity: 0 !important;
+    }
     /* Give the password field breathing room so typed text doesn't run under the icon */
     div[data-baseweb="input"]:has(button) input {
         padding-right: 36px !important;
@@ -151,6 +161,56 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+
+# --- STRUCTURE-AGNOSTIC EYE ICON FIX ---
+# The CSS selector approach (targeting div[data-baseweb="input"] button ...)
+# never matched anything, which means the toggle button is NOT nested inside
+# that div in this Streamlit version — it's positioned elsewhere in the tree.
+# Instead of guessing the exact hierarchy again, this finds the icon by its
+# actual text content ("visibility"), which is stable regardless of where
+# Streamlit places it, and works even after Streamlit re-renders on rerun.
+components.html("""
+<script>
+(function() {
+    const doc = window.parent.document;
+
+    if (!doc.getElementById('eye-icon-style')) {
+        const style = doc.createElement('style');
+        style.id = 'eye-icon-style';
+        style.innerHTML = `
+            .custom-eye-icon {
+                font-size: 0 !important;
+                color: transparent !important;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236c538c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E") !important;
+                background-repeat: no-repeat !important;
+                background-position: center center !important;
+                background-size: 18px 18px !important;
+            }
+        `;
+        doc.head.appendChild(style);
+    }
+
+    function fixEyeIcons() {
+        const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_ELEMENT);
+        let el;
+        while ((el = walker.nextNode())) {
+            if (el.children.length === 0) {
+                const text = (el.textContent || "").trim();
+                if (text === "visibility" || text === "visibility_off") {
+                    el.classList.add("custom-eye-icon");
+                    const btn = el.closest("button");
+                    if (btn) btn.classList.add("custom-eye-icon");
+                }
+            }
+        }
+    }
+
+    fixEyeIcons();
+    const observer = new MutationObserver(fixEyeIcons);
+    observer.observe(doc.body, { childList: true, subtree: true });
+})();
+</script>
+""", height=0)
 
 # 1. Initialize Authentication session state
 if "authenticated" not in st.session_state:
