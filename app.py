@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit_authenticator as stauth
 from google import genai
 from google.genai import types
 import time
@@ -21,7 +20,7 @@ st.markdown("""
         background: linear-gradient(135deg, #e0c3fc 0%, #fbc2eb 100%) !important;
     }
     
-    /* FORCE BRUTE-FORCE OVERRIDE ON ALL INPUT FIELDS (Login and Journal textareas) */
+    /* FORCE BRUTE-FORCE OVERRIDE ON ALL INPUT FIELDS */
     input, textarea, [data-baseweb="input"], [data-baseweb="textarea"], .stTextInput div, .stTextArea div {
         background-color: rgba(255, 255, 255, 0.6) !important;
         background: rgba(255, 255, 255, 0.6) !important;
@@ -30,53 +29,14 @@ st.markdown("""
         color: #3d2e4f !important;
     }
 
-    /* Force the actual text typed inside input boxes to be dark purple and readable */
+    /* Force text inside inputs to be legible and dark purple */
     input[type="text"], input[type="password"], textarea {
         color: #3d2e4f !important;
         -webkit-text-fill-color: #3d2e4f !important;
     }
     
-    /* PERMANENT EYE ICON FIX: Inject an authentic Unicode Symbol instead of text strings */
-    button[data-testid="stInputActionButton"],
-    div[data-baseweb="input"] button,
-    .stTextInput button {
-        color: transparent !important;
-        background: transparent !important;
-        width: 45px !important;
-        height: 35px !important;
-        position: relative !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        border: none !important;
-    }
-
-    /* Hide the 'visibility' characters completely by collapsing the inner box */
-    button[data-testid="stInputActionButton"] div, 
-    .stTextInput button span,
-    .stTextInput code {
-        font-size: 0px !important;
-        color: transparent !important;
-        line-height: 0 !important;
-        display: none !important;
-    }
-
-    /* Inject a stable, high-contrast digital unicode eye element text layout string */
-    button[data-testid="stInputActionButton"]::before, 
-    div[data-baseweb="input"] button::before {
-        content: "👁️" !important;
-        position: absolute !important;
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        font-size: 18px !important;
-        color: #6c538c !important;
-        visibility: visible !important;
-        display: block !important;
-    }
-    
     /* FIX THE BORING LOGIN BOX CONTAINER */
-    [data-testid="stForm"], form {
+    .login-container {
         background-color: rgba(255, 255, 255, 0.45) !important;
         border-radius: 24px !important;
         border: 2px solid rgba(255, 255, 255, 0.6) !important;
@@ -84,6 +44,7 @@ st.markdown("""
         -webkit-backdrop-filter: blur(12px);
         padding: 40px !important;
         box-shadow: 0px 10px 30px rgba(161, 140, 209, 0.2) !important;
+        margin-top: 40px;
     }
     
     /* High contrast placeholders */
@@ -106,11 +67,10 @@ st.markdown("""
         font-family: 'Helvetica Neue', Arial, sans-serif !important;
     }
     
-    /* Beautiful pastel buttons (Targets both Login and Save buttons) */
-    div.stButton > button:first-child, form button[type="submit"], button[data-testid="baseButton-secondary"], [data-testid="stForm"] button {
+    /* Beautiful pastel action buttons */
+    div.stButton > button:first-child {
         background: linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%) !important;
         color: white !important;
-        -webkit-text-fill-color: white !important;
         border: none !important;
         border-radius: 25px !important;
         padding: 12px 28px !important;
@@ -119,7 +79,7 @@ st.markdown("""
         transition: all 0.3s ease !important;
     }
     
-    div.stButton > button:first-child:hover, form button[type="submit"]:hover, [data-testid="stForm"] button:hover {
+    div.stButton > button:first-child:hover {
         transform: translateY(-2px) !important;
         box-shadow: 0px 8px 20px rgba(161, 140, 209, 0.6) !important;
     }
@@ -151,33 +111,52 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-if 'credentials' not in st.secrets:
-    st.error("Missing '.streamlit/secrets.toml' file!")
+# 1. Initialize Authentication session state
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "username" not in st.session_state:
+    st.session_state.username = ""
+
+# 2. Render Login Form if User is Not Authenticated
+if not st.session_state.authenticated:
+    st.title("🔮 Personal Gemini Journal")
+    
+    # Custom HTML container layout wrapping core input fields
+    st.markdown('<div class="login-container">', unsafe_allow_html=True)
+    st.subheader("Login")
+    
+    input_user = st.text_input("Username")
+    input_pass = st.text_input("Password", type="password") # Native password toggle with perfect layout icon
+    
+    login_btn = st.button("Login")
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    if login_btn:
+        # Match against our configuration secrets layout
+        if 'credentials' in st.secrets and input_user in st.secrets['credentials']['usernames']:
+            correct_pass = st.secrets['credentials']['usernames'][input_user]['password']
+            if input_pass == correct_pass:
+                st.session_state.authenticated = True
+                st.session_state.username = input_user
+                st.session_state.name = st.secrets['credentials']['usernames'][input_user]['name']
+                st.rerun()
+            else:
+                st.error("Username/password is incorrect")
+        else:
+            st.error("Username/password is incorrect")
+            
     st.stop()
 
-# User Authentication Setup
-authenticator = stauth.Authenticate(
-    st.secrets['credentials'].to_dict(),
-    st.secrets['cookie']['name'],
-    st.secrets['cookie']['key'],
-    st.secrets['cookie']['expiry_days']
-)
-
-authenticator.login()
-
-if st.session_state["authentication_status"] is False:
-    st.error('Username/password is incorrect')
-    st.stop()
-elif st.session_state["authentication_status"] is None or not st.session_state["authentication_status"]:
-    st.warning('Please login to access your secure journal.')
-    st.stop()
-
-username = st.session_state["username"]
-name = st.session_state["name"]
+# --- Everything below this line is secure and active within user validation context ---
+username = st.session_state.username
+name = st.session_state.name
 
 with st.sidebar:
     st.write(f"✨ Welcome back, **{name}**")
-    authenticator.logout('Logout', 'sidebar')
+    if st.button("Logout"):
+        st.session_state.authenticated = False
+        st.session_state.username = ""
+        st.rerun()
 
 st.title("🔮 My Dreamy Gemini Journal")
 
