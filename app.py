@@ -9,6 +9,13 @@ st.set_page_config(page_title="Personal Gemini Journal", page_icon="🔮", layou
 # --- ADVANCED DREAMY & PASTEL CSS OVERHAUL ---
 st.markdown("""
     <style>
+    /* REMOVE STUBBORN BLACK TOP HEADER BAR */
+    header[data-testid="stHeader"] {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0px !important;
+    }
+
     /* Global App canvas gradient background */
     .stApp {
         background: linear-gradient(135deg, #e0c3fc 0%, #fbc2eb 100%) !important;
@@ -61,9 +68,10 @@ st.markdown("""
     }
     
     /* Beautiful pastel buttons (Targets both Login and Save buttons) */
-    div.stButton > button:first-child, form button[type="submit"], button[data-testid="baseButton-secondary"] {
+    div.stButton > button:first-child, form button[type="submit"], button[data-testid="baseButton-secondary"], [data-testid="stForm"] button {
         background: linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%) !important;
         color: white !important;
+        -webkit-text-fill-color: white !important;
         border: none !important;
         border-radius: 25px !important;
         padding: 12px 28px !important;
@@ -72,7 +80,7 @@ st.markdown("""
         transition: all 0.3s ease !important;
     }
     
-    div.stButton > button:first-child:hover, form button[type="submit"]:hover {
+    div.stButton > button:first-child:hover, form button[type="submit"]:hover, [data-testid="stForm"] button:hover {
         transform: translateY(-2px) !important;
         box-shadow: 0px 8px 20px rgba(161, 140, 209, 0.6) !important;
     }
