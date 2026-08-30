@@ -3,6 +3,45 @@ import streamlit.components.v1 as components
 from google import genai
 from google.genai import types
 import time
+from datetime import datetime, date, timedelta
+import html as html_lib
+
+# Mood tags: each maps a label (emoji + word, always shown together — never
+# color alone, so colorblind users aren't relying on hue to tell moods apart)
+# to a hex color used for the small dot indicator on saved memory cards.
+MOOD_OPTIONS = {
+    "😊 Happy": "#8BC34A",
+    "😌 Calm": "#64B5F6",
+    "😐 Neutral": "#B0A8C9",
+    "😔 Sad": "#7986CB",
+    "😤 Stressed": "#EF5350",
+    "✨ Inspired": "#FFB74D",
+}
+
+
+def compute_streak(entries):
+    """Consecutive-day streak, counted backward from the most recent entry.
+    Still counts as 'alive' if the last entry was today or yesterday (so it
+    doesn't zero out just because you haven't written yet today); breaks
+    if there's a real gap of 2+ days."""
+    if not entries:
+        return 0
+    entry_dates = sorted(
+        {datetime.strptime(e["timestamp"], "%Y-%m-%d %H:%M:%S").date() for e in entries},
+        reverse=True,
+    )
+    most_recent = entry_dates[0]
+    if (date.today() - most_recent).days > 1:
+        return 0
+    streak = 1
+    expected = most_recent - timedelta(days=1)
+    for d in entry_dates[1:]:
+        if d == expected:
+            streak += 1
+            expected -= timedelta(days=1)
+        elif d < expected:
+            break
+    return streak
 
 st.set_page_config(page_title="Personal Gemini Journal", page_icon="🔮", layout="centered")
 
@@ -135,22 +174,58 @@ st.markdown("""
         box-shadow: 0px 8px 20px rgba(161, 140, 209, 0.6) !important;
     }
     
-    /* Custom Memory Card Styling */
-    .memory-card {
+    /* Custom Memory Card Styling — now a <details> element so it's
+       collapsed by default and expands on click, no JS required, since
+       <details>/<summary> is native browser behavior. */
+    details.memory-card {
         background-color: rgba(255, 255, 255, 0.55) !important;
         border-radius: 16px !important;
         border: 1px solid rgba(255, 255, 255, 0.5) !important;
         backdrop-filter: blur(4px);
-        padding: 20px !important;
+        padding: 16px 20px !important;
         margin-bottom: 15px !important;
         box-shadow: 0px 4px 10px rgba(161, 140, 209, 0.1) !important;
     }
-    
-    .memory-date {
+
+    details.memory-card summary {
+        cursor: pointer !important;
         font-weight: bold !important;
         color: #6c538c !important;
         font-size: 0.95rem !important;
-        margin-bottom: 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        list-style: revert !important;   /* keep the native expand triangle */
+    }
+
+    details.memory-card .memory-body {
+        margin-top: 12px !important;
+    }
+
+    /* Colored mood dot — always paired with the mood emoji + word in the
+       text itself, never used as the only signal (accessibility: color
+       alone can't be the sole carrier of meaning). */
+    .mood-dot {
+        display: inline-block !important;
+        width: 10px !important;
+        height: 10px !important;
+        border-radius: 50% !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Streak badge */
+    .streak-badge {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        background: rgba(255, 255, 255, 0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.6) !important;
+        border-radius: 20px !important;
+        padding: 8px 18px !important;
+        font-weight: bold !important;
+        color: #6c538c !important;
+        margin-bottom: 16px !important;
+        box-shadow: 0px 4px 10px rgba(161, 140, 209, 0.1) !important;
     }
     
     /* Info alert element boxes */
@@ -265,16 +340,23 @@ with st.sidebar:
 
 st.title("🔮 My Dreamy Gemini Journal")
 
+if "journal_db" not in st.session_state:
+    st.session_state.journal_db = {}
+if username not in st.session_state.journal_db:
+    st.session_state.journal_db[username] = []
+
+_streak = compute_streak(st.session_state.journal_db[username])
+if _streak > 0:
+    st.markdown(
+        f'<div class="streak-badge">🔥 {_streak} day{"s" if _streak != 1 else ""} streak</div>',
+        unsafe_allow_html=True,
+    )
+
 @st.cache_resource
 def get_gemini_client():
     return genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 client = get_gemini_client()
-
-if "journal_db" not in st.session_state:
-    st.session_state.journal_db = {}
-if username not in st.session_state.journal_db:
-    st.session_state.journal_db[username] = []
 
 st.subheader("✍️ Capture Your Reflections")
 entry_text = st.text_area(label="Reflection Input Window", label_visibility="collapsed", placeholder="Write down your starry thoughts here...", height=150)
@@ -336,6 +418,12 @@ components.html("""
 </script>
 """, height=0)
 
+selected_mood = st.radio(
+    "How are you feeling?",
+    options=list(MOOD_OPTIONS.keys()),
+    horizontal=True,
+)
+
 if st.button("Securely Save & Summarize"):
     if not entry_text.strip():
         st.error("Please write something first.")
@@ -355,7 +443,8 @@ if st.button("Securely Save & Summarize"):
                 entry_data = {
                     "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
                     "content": entry_text,
-                    "summary": response.text
+                    "summary": response.text,
+                    "mood": selected_mood,
                 }
                 st.session_state.journal_db[username].append(entry_data)
                 st.success("Your thoughts have been safely archived.")
@@ -370,11 +459,30 @@ if not user_entries:
     st.info("No entries saved in this timeline yet.")
 else:
     for entry in reversed(user_entries):
+        # .get() with a default handles entries saved before the mood
+        # feature existed, so old data doesn't crash the page.
+        mood_label = entry.get("mood", "😐 Neutral")
+        mood_color = MOOD_OPTIONS.get(mood_label, "#B0A8C9")
+
+        # Escaping here matters: this content is interpolated into raw HTML
+        # via unsafe_allow_html=True. Without escaping, a journal entry
+        # containing something like "<script>...</script>" would execute
+        # as real HTML/JS every time this page renders — a stored XSS hole.
+        safe_content = html_lib.escape(entry["content"]).replace("\n", "<br>")
+        safe_summary = html_lib.escape(entry["summary"])
+        safe_timestamp = html_lib.escape(entry["timestamp"])
+        safe_mood_label = html_lib.escape(mood_label)
+
         st.markdown(f"""
-            <div class="memory-card">
-                <div class="memory-date">🔮 Memory from {entry['timestamp']}</div>
-                <p><strong>Insight:</strong> <em>{entry['summary']}</em></p>
-                <hr style="border: 0; height: 1px; background: rgba(161, 140, 209, 0.2); margin: 12px 0;">
-                <p>{entry['content']}</p>
-            </div>
+            <details class="memory-card">
+                <summary>
+                    <span class="mood-dot" style="background-color:{mood_color};"></span>
+                    {safe_mood_label} &nbsp;·&nbsp; 🔮 {safe_timestamp}
+                </summary>
+                <div class="memory-body">
+                    <p><strong>Insight:</strong> <em>{safe_summary}</em></p>
+                    <hr style="border: 0; height: 1px; background: rgba(161, 140, 209, 0.2); margin: 12px 0;">
+                    <p>{safe_content}</p>
+                </div>
+            </details>
         """, unsafe_allow_html=True)
