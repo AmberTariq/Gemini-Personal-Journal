@@ -37,12 +37,25 @@ st.markdown("""
     
     /* Elegant bounding card frame layout wrapper specifically for our login cluster */
     div.login-card-frame {
-        background-color: rgba(255, 255, 255, 0.35) !important;
-        border-radius: 20px !important;
-        border: 1px solid rgba(255, 255, 255, 0.5) !important;
-        backdrop-filter: blur(10px);
-        padding: 30px !important;
-        box-shadow: 0 10px 25px rgba(161, 140, 209, 0.15);
+        background-color: rgba(255, 255, 255, 0.45) !important;
+        border-radius: 24px !important;
+        border: 2px solid rgba(255, 255, 255, 0.6) !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        padding: 40px !important;
+        box-shadow: 0px 10px 30px rgba(161, 140, 209, 0.2) !important;
+        margin-top: 20px;
+    }
+    
+    /* TARGET ONLY PASSWORD ACTIONS AND TEXTS INSIDE THE INPUT BOX */
+    div[data-baseweb="input"] button div,
+    div[data-baseweb="input"] button span,
+    .stTextInput button div {
+        font-size: 0px !important;
+        color: transparent !important;
+        display: none !important;
+        width: 0px !important;
+        height: 0px !important;
     }
     
     /* High contrast placeholders */
@@ -72,19 +85,19 @@ st.markdown("""
         -webkit-text-fill-color: #ffffff !important;
         border: none !important;
         border-radius: 25px !important;
-        padding: 10px 30px !important;
+        padding: 12px 35px !important;
         font-weight: bold !important;
-        box-shadow: 0px 5px 15px rgba(161, 140, 209, 0.3) !important;
+        box-shadow: 0px 5px 15px rgba(161, 140, 209, 0.4) !important;
         transition: all 0.3s ease !important;
         display: inline-block !important;
         visibility: visible !important;
         font-size: 1rem !important;
-        margin-top: 10px;
+        margin-top: 15px;
     }
     
     div.stButton > button:first-child:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0px 8px 20px rgba(161, 140, 209, 0.5) !important;
+        box-shadow: 0px 8px 20px rgba(161, 140, 209, 0.6) !important;
     }
     
     /* Custom Memory Card Styling */
@@ -122,12 +135,12 @@ if "username" not in st.session_state:
 
 # 2. Render Login Form if User is Not Authenticated
 if not st.session_state.authenticated:
-    st.title("🔮 Personal Gemini Journal")
     
-    # Create columns to restrict width and center-align the card box frame
-    col1, col2, col3 = st.columns([1, 4, 1])
+    # Proportional layout sizing configurations to prevent wide stretching
+    col1, col2, col3 = st.columns([1, 5, 1])
     
     with col2:
+        st.title("🔮 Personal Gemini Journal")
         # Open custom container card structure element block
         st.markdown('<div class="login-card-frame">', unsafe_allow_html=True)
         st.subheader("Login")
