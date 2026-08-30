@@ -41,21 +41,27 @@ st.markdown("""
     div[data-baseweb="input"] button,
     .stTextInput button {
         color: transparent !important;
-        -webkit-text-fill-color: transparent !important;
-        position: relative !important;
         background: transparent !important;
-        width: 40px !important;
-        height: 32px !important;
-        font-size: 0px !important;
+        width: 45px !important;
+        height: 35px !important;
+        position: relative !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border: none !important;
     }
 
-    /* Prevent any underlying text node from leaking through */
-    button[data-testid="stInputActionButton"] *, .stTextInput button * {
+    /* Completely hide the default raw font text word without deleting the button cell */
+    button[data-testid="stInputActionButton"] div, 
+    .stTextInput button span,
+    .stTextInput code {
+        font-size: 0px !important;
         color: transparent !important;
+        line-height: 0 !important;
         display: none !important;
     }
 
-    /* Build a clean, pastel-matching CSS eye icon outline shape exactly centered in the button */
+    /* Build a clean, pastel-matching CSS eye icon outline shape exactly centered */
     button[data-testid="stInputActionButton"]::before, 
     div[data-baseweb="input"] button::before {
         content: "" !important;
@@ -68,6 +74,7 @@ st.markdown("""
         border: 2px solid #6c538c !important;
         border-radius: 50% 50% !important;
         display: block !important;
+        z-index: 10 !important;
     }
 
     /* Build the inner pupil dot perfectly inside the eye icon */
@@ -83,6 +90,7 @@ st.markdown("""
         background-color: #6c538c !important;
         border-radius: 50% !important;
         display: block !important;
+        z-index: 11 !important;
     }
     
     /* FIX THE BORING LOGIN BOX CONTAINER */
