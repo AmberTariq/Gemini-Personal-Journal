@@ -36,45 +36,53 @@ st.markdown("""
         -webkit-text-fill-color: #3d2e4f !important;
     }
     
-        /* FORCEFULLY CONVERT THE STUBBORN "VISIBILITY" TEXT INTO A PASTEL EYE ICON */
-    .stTextInput code,
-    button[title="Maximize"], 
-    div[data-baseweb="input"] button {
+          /* FORCEFULLY CONVERT THE STUBBORN "VISIBILITY" TEXT INTO A PASTEL EYE ICON */
+    button[data-testid="stInputActionButton"],
+    div[data-baseweb="input"] button,
+    .stTextInput button {
         color: transparent !important;
         -webkit-text-fill-color: transparent !important;
         position: relative !important;
         background: transparent !important;
-        width: 35px !important;
+        width: 40px !important;
         height: 32px !important;
         font-size: 0px !important;
     }
 
-    /* Build a clean, pastel-matching CSS eye icon outline shape */
-    div[data-baseweb="input"] button::before, .stTextInput button::before {
-        content: "" !important;
-        position: absolute !important;
-        top: 50% !important;
-        left: 20% !important;
-        transform: translate(-50%, -50%) !important;
-        width: 16px !important;
-        height: 10px !important;
-        border: 2px solid #6c538c !important;
-        border-radius: 50% 50% !important;
-        visibility: visible !important;
+    /* Prevent any underlying text node from leaking through */
+    button[data-testid="stInputActionButton"] *, .stTextInput button * {
+        color: transparent !important;
+        display: none !important;
     }
 
-    /* Build the inner pupil dot for the eye icon structure */
-    div[data-baseweb="input"] button::after, .stTextInput button::after {
+    /* Build a clean, pastel-matching CSS eye icon outline shape exactly centered in the button */
+    button[data-testid="stInputActionButton"]::before, 
+    div[data-baseweb="input"] button::before {
         content: "" !important;
         position: absolute !important;
         top: 50% !important;
-        left: 20% !important;
+        left: 50% !important;
         transform: translate(-50%, -50%) !important;
-        width: 4px !important;
-        height: 4px !important;
+        width: 18px !important;
+        height: 11px !important;
+        border: 2px solid #6c538c !important;
+        border-radius: 50% 50% !important;
+        display: block !important;
+    }
+
+    /* Build the inner pupil dot perfectly inside the eye icon */
+    button[data-testid="stInputActionButton"]::after, 
+    div[data-baseweb="input"] button::after {
+        content: "" !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 5px !important;
+        height: 5px !important;
         background-color: #6c538c !important;
         border-radius: 50% !important;
-        visibility: visible !important;
+        display: block !important;
     }
 
     /* FIX THE BORING LOGIN BOX CONTAINER */
