@@ -50,12 +50,37 @@ st.markdown("""
         margin-top: 20px;
     }
     
-    /* Hide the password show/hide toggle button entirely — hiding only its
-       inner icon text is unreliable because Streamlit's Material Symbols
-       ligature ("visibility") falls back to raw text if the icon font
-       hasn't loaded, and that text overflows past the input's border. */
+    /* Password show/hide toggle: replace Streamlit's default icon (a Material
+       Symbols ligature that renders as raw "visibility" text if the icon
+       font fails to load) with a CSS-drawn eye SVG. This never depends on
+       an external font, so it can't fall back to text. */
+    div[data-baseweb="input"] {
+        position: relative !important;
+    }
     div[data-baseweb="input"] button {
+        font-size: 0 !important;
+        color: transparent !important;
+        background-color: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        position: absolute !important;
+        right: 10px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        width: 20px !important;
+        height: 20px !important;
+        min-width: 0 !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236c538c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: center !important;
+        background-size: 18px 18px !important;
+    }
+    div[data-baseweb="input"] button svg {
         display: none !important;
+    }
+    /* Give the password field breathing room so typed text doesn't run under the icon */
+    div[data-baseweb="input"]:has(button) input {
+        padding-right: 36px !important;
     }
     
     /* High contrast placeholders */
