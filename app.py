@@ -36,6 +36,44 @@ st.markdown("""
         -webkit-text-fill-color: #3d2e4f !important;
     }
     
+    /* CONVERT STUBBORN "VISIBILITY" TEXT INTO A CLEAN EYE ICON */
+    button[title="Maximize"], 
+    div[data-baseweb="input"] button {
+        color: transparent !important;
+        position: relative !important;
+        background: transparent !important;
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    /* Build a clean, pastel-matching CSS eye icon outline shape */
+    div[data-baseweb="input"] button::before {
+        content: "" !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 16px !important;
+        height: 10px !important;
+        border: 2px solid #6c538c !important;
+        border-radius: 50% 50% !important;
+        visibility: visible !important;
+    }
+
+    /* Build the inner pupil dot for the eye icon structure */
+    div[data-baseweb="input"] button::after {
+        content: "" !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 4px !important;
+        height: 4px !important;
+        background-color: #6c538c !important;
+        border-radius: 50% !important;
+        visibility: visible !important;
+    }
+    
     /* FIX THE BORING LOGIN BOX CONTAINER */
     [data-testid="stForm"], form {
         background-color: rgba(255, 255, 255, 0.45) !important;
