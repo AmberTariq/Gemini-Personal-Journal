@@ -36,22 +36,25 @@ st.markdown("""
         -webkit-text-fill-color: #3d2e4f !important;
     }
     
-    /* CONVERT STUBBORN "VISIBILITY" TEXT INTO A CLEAN EYE ICON */
+        /* FORCEFULLY CONVERT THE STUBBORN "VISIBILITY" TEXT INTO A PASTEL EYE ICON */
+    .stTextInput code,
     button[title="Maximize"], 
     div[data-baseweb="input"] button {
         color: transparent !important;
+        -webkit-text-fill-color: transparent !important;
         position: relative !important;
         background: transparent !important;
-        width: 32px !important;
+        width: 35px !important;
         height: 32px !important;
+        font-size: 0px !important;
     }
 
     /* Build a clean, pastel-matching CSS eye icon outline shape */
-    div[data-baseweb="input"] button::before {
+    div[data-baseweb="input"] button::before, .stTextInput button::before {
         content: "" !important;
         position: absolute !important;
         top: 50% !important;
-        left: 50% !important;
+        left: 20% !important;
         transform: translate(-50%, -50%) !important;
         width: 16px !important;
         height: 10px !important;
@@ -61,11 +64,11 @@ st.markdown("""
     }
 
     /* Build the inner pupil dot for the eye icon structure */
-    div[data-baseweb="input"] button::after {
+    div[data-baseweb="input"] button::after, .stTextInput button::after {
         content: "" !important;
         position: absolute !important;
         top: 50% !important;
-        left: 50% !important;
+        left: 20% !important;
         transform: translate(-50%, -50%) !important;
         width: 4px !important;
         height: 4px !important;
@@ -73,7 +76,7 @@ st.markdown("""
         border-radius: 50% !important;
         visibility: visible !important;
     }
-    
+
     /* FIX THE BORING LOGIN BOX CONTAINER */
     [data-testid="stForm"], form {
         background-color: rgba(255, 255, 255, 0.45) !important;
