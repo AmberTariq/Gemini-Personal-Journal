@@ -1,0 +1,7 @@
+[theme]
+# primaryColor themes Streamlit's own built-in controls — radio buttons,
+# checkboxes, sliders, focus outlines — directly through Streamlit's
+# supported theming system. This is the reliable fix for the radio button
+# color, unlike CSS overrides, which can't reach into BaseWeb's internally
+# rendered controls (the same wall we hit with the password eye icon).
+primaryColor = "#a18cd1"
