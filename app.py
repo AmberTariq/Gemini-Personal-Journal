@@ -35,8 +35,11 @@ st.markdown("""
         -webkit-text-fill-color: #3d2e4f !important;
     }
     
-    /* Elegant bounding card frame layout wrapper specifically for our login cluster */
-    div.login-card-frame {
+    /* Elegant bounding card frame layout wrapper specifically for our login cluster.
+       Targets the div Streamlit generates for st.container(key="login_card"),
+       which — unlike a raw st.markdown div — actually wraps its child widgets. */
+    div[data-testid="stVerticalBlockBorderWrapper"].st-key-login_card,
+    div.st-key-login_card {
         background-color: rgba(255, 255, 255, 0.45) !important;
         border-radius: 24px !important;
         border: 2px solid rgba(255, 255, 255, 0.6) !important;
@@ -47,15 +50,12 @@ st.markdown("""
         margin-top: 20px;
     }
     
-    /* TARGET ONLY PASSWORD ACTIONS AND TEXTS INSIDE THE INPUT BOX */
-    div[data-baseweb="input"] button div,
-    div[data-baseweb="input"] button span,
-    .stTextInput button div {
-        font-size: 0px !important;
-        color: transparent !important;
+    /* Hide the password show/hide toggle button entirely — hiding only its
+       inner icon text is unreliable because Streamlit's Material Symbols
+       ligature ("visibility") falls back to raw text if the icon font
+       hasn't loaded, and that text overflows past the input's border. */
+    div[data-baseweb="input"] button {
         display: none !important;
-        width: 0px !important;
-        height: 0px !important;
     }
     
     /* High contrast placeholders */
@@ -141,15 +141,16 @@ if not st.session_state.authenticated:
     
     with col2:
         st.title("🔮 Personal Gemini Journal")
-        # Open custom container card structure element block
-        st.markdown('<div class="login-card-frame">', unsafe_allow_html=True)
-        st.subheader("Login")
-        
-        input_user = st.text_input("Username")
-        input_pass = st.text_input("Password", type="password")
-        
-        login_btn = st.button("Login")
-        st.markdown('</div>', unsafe_allow_html=True) # Close custom container frame block
+        # st.container(key=...) — unlike st.markdown('<div>...') — actually
+        # wraps the widgets placed inside its `with` block in the real DOM,
+        # so the CSS card styling wraps the form instead of floating empty.
+        with st.container(key="login_card"):
+            st.subheader("Login")
+
+            input_user = st.text_input("Username")
+            input_pass = st.text_input("Password", type="password")
+
+            login_btn = st.button("Login")
     
     if login_btn:
         if 'credentials' in st.secrets and input_user in st.secrets['credentials']['usernames']:
