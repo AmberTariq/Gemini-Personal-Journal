@@ -35,12 +35,17 @@ st.markdown("""
         -webkit-text-fill-color: #3d2e4f !important;
     }
     
-    /* HIDE THE UNWANTED "VISIBILITY" TEXT STRING FALLBACK */
-    button[data-testid="stInputActionButton"] span, 
-    .stTextInput button span, 
-    button div {
+    /* TARGET ONLY PASSWORD EXTRA VISIBILITY MESSAGES TO PREVENT BREAKING MAIN BUTTONS */
+    .stTextInput data-testid {
+        font-size: 0px !important;
+    }
+    
+    .stTextInput div[data-baseweb="input"] button div,
+    .stTextInput button span,
+    div[role="presentation"] button {
         font-size: 0px !important;
         color: transparent !important;
+        display: none !important;
     }
     
     /* High contrast placeholders */
@@ -63,16 +68,20 @@ st.markdown("""
         font-family: 'Helvetica Neue', Arial, sans-serif !important;
     }
     
-    /* Beautiful pastel action buttons */
+    /* Beautiful pastel action buttons - Text color and fill forced to white */
     div.stButton > button:first-child {
         background: linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%) !important;
-        color: white !important;
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
         border: none !important;
         border-radius: 25px !important;
-        padding: 12px 28px !important;
+        padding: 12px 35px !important;
         font-weight: bold !important;
         box-shadow: 0px 5px 15px rgba(161, 140, 209, 0.4) !important;
         transition: all 0.3s ease !important;
+        display: inline-block !important;
+        visibility: visible !important;
+        font-size: 1rem !important;
     }
     
     div.stButton > button:first-child:hover {
