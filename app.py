@@ -35,17 +35,14 @@ st.markdown("""
         -webkit-text-fill-color: #3d2e4f !important;
     }
     
-    /* TARGET ONLY PASSWORD EXTRA VISIBILITY MESSAGES TO PREVENT BREAKING MAIN BUTTONS */
-    .stTextInput data-testid {
-        font-size: 0px !important;
-    }
-    
-    .stTextInput div[data-baseweb="input"] button div,
-    .stTextInput button span,
-    div[role="presentation"] button {
-        font-size: 0px !important;
-        color: transparent !important;
-        display: none !important;
+    /* Elegant bounding card frame layout wrapper specifically for our login cluster */
+    div.login-card-frame {
+        background-color: rgba(255, 255, 255, 0.35) !important;
+        border-radius: 20px !important;
+        border: 1px solid rgba(255, 255, 255, 0.5) !important;
+        backdrop-filter: blur(10px);
+        padding: 30px !important;
+        box-shadow: 0 10px 25px rgba(161, 140, 209, 0.15);
     }
     
     /* High contrast placeholders */
@@ -75,18 +72,19 @@ st.markdown("""
         -webkit-text-fill-color: #ffffff !important;
         border: none !important;
         border-radius: 25px !important;
-        padding: 12px 35px !important;
+        padding: 10px 30px !important;
         font-weight: bold !important;
-        box-shadow: 0px 5px 15px rgba(161, 140, 209, 0.4) !important;
+        box-shadow: 0px 5px 15px rgba(161, 140, 209, 0.3) !important;
         transition: all 0.3s ease !important;
         display: inline-block !important;
         visibility: visible !important;
         font-size: 1rem !important;
+        margin-top: 10px;
     }
     
     div.stButton > button:first-child:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0px 8px 20px rgba(161, 140, 209, 0.6) !important;
+        box-shadow: 0px 8px 20px rgba(161, 140, 209, 0.5) !important;
     }
     
     /* Custom Memory Card Styling */
@@ -125,12 +123,20 @@ if "username" not in st.session_state:
 # 2. Render Login Form if User is Not Authenticated
 if not st.session_state.authenticated:
     st.title("🔮 Personal Gemini Journal")
-    st.subheader("Login")
     
-    input_user = st.text_input("Username")
-    input_pass = st.text_input("Password", type="password")
+    # Create columns to restrict width and center-align the card box frame
+    col1, col2, col3 = st.columns([1, 4, 1])
     
-    login_btn = st.button("Login")
+    with col2:
+        # Open custom container card structure element block
+        st.markdown('<div class="login-card-frame">', unsafe_allow_html=True)
+        st.subheader("Login")
+        
+        input_user = st.text_input("Username")
+        input_pass = st.text_input("Password", type="password")
+        
+        login_btn = st.button("Login")
+        st.markdown('</div>', unsafe_allow_html=True) # Close custom container frame block
     
     if login_btn:
         if 'credentials' in st.secrets and input_user in st.secrets['credentials']['usernames']:
