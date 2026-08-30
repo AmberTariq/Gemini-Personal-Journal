@@ -14,9 +14,24 @@ st.markdown("""
         background: linear-gradient(135deg, #e0c3fc 0%, #fbc2eb 100%) !important;
     }
     
+    /* FORCE BRUTE-FORCE OVERRIDE ON ALL INPUT FIELDS (Login and Journal textareas) */
+    input, textarea, [data-baseweb="input"], [data-baseweb="textarea"], .stTextInput div, .stTextArea div {
+        background-color: rgba(255, 255, 255, 0.6) !important;
+        background: rgba(255, 255, 255, 0.6) !important;
+        border: 2px solid #c29ffa !important;
+        border-radius: 12px !important;
+        color: #3d2e4f !important;
+    }
+
+    /* Force the actual text typed inside input boxes to be dark purple and readable */
+    input[type="text"], input[type="password"], textarea {
+        color: #3d2e4f !important;
+        -webkit-text-fill-color: #3d2e4f !important;
+    }
+    
     /* FIX THE BORING LOGIN BOX CONTAINER */
     [data-testid="stForm"], form {
-        background-color: rgba(255, 255, 255, 0.5) !important;
+        background-color: rgba(255, 255, 255, 0.45) !important;
         border-radius: 24px !important;
         border: 2px solid rgba(255, 255, 255, 0.6) !important;
         backdrop-filter: blur(12px);
@@ -25,47 +40,10 @@ st.markdown("""
         box-shadow: 0px 10px 30px rgba(161, 140, 209, 0.2) !important;
     }
     
-    /* FIX THE BORING LOGIN INPUT BOXES */
-    [data-testid="stForm"] input, 
-    div[data-testid="stForm"] div[data-baseweb="input"] {
-        background-color: rgba(255, 255, 255, 0.6) !important;
-        border: 2px solid #c29ffa !important;
-        border-radius: 12px !important;
-        color: #3d2e4f !important;
-    }
-    
-    /* Text color fallback inside input elements */
-    [data-testid="stForm"] input {
-        color: #3d2e4f !important;
-    }
-    
-    /* STUBBORN TEXT AREA REFACTOR (INNER JOURNAL DASHBOARD) */
-    .stTextArea textarea, 
-    div[data-testid="stTextArea"] > div,
-    div[data-testid="stTextArea"] > div > div {
-        background-color: rgba(255, 255, 255, 0.5) !important;
-        border: 2px solid #c29ffa !important;
-        border-radius: 16px !important;
-        color: #3d2e4f !important;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-    
-    .stTextArea textarea {
-        color: #3d2e4f !important;
-        font-size: 1.05rem !important;
-    }
-    
     /* High contrast placeholders */
-    .stTextArea textarea::placeholder {
+    ::placeholder, .stTextArea textarea::placeholder {
         color: #5b4970 !important;
-        opacity: 1.0 !important;
-        font-weight: 500 !important;
-    }
-    
-    /* Active focus state when typing */
-    .stTextArea textarea:focus, div[data-testid="stTextArea"] > div:focus-within {
-        border-color: #a18cd1 !important;
-        box-shadow: 0 0 10px rgba(161, 140, 209, 0.5) !important;
+        opacity: 0.8 !important;
     }
     
     /* PREMIUM SIDEBAR: High-end frosted glass styling */
@@ -83,7 +61,7 @@ st.markdown("""
     }
     
     /* Beautiful pastel buttons (Targets both Login and Save buttons) */
-    div.stButton > button:first-child, form button[type="submit"] {
+    div.stButton > button:first-child, form button[type="submit"], button[data-testid="baseButton-secondary"] {
         background: linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%) !important;
         color: white !important;
         border: none !important;
@@ -92,7 +70,6 @@ st.markdown("""
         font-weight: bold !important;
         box-shadow: 0px 5px 15px rgba(161, 140, 209, 0.4) !important;
         transition: all 0.3s ease !important;
-        width: auto !important;
     }
     
     div.stButton > button:first-child:hover, form button[type="submit"]:hover {
