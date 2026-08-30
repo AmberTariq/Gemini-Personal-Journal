@@ -14,7 +14,32 @@ st.markdown("""
         background: linear-gradient(135deg, #e0c3fc 0%, #fbc2eb 100%) !important;
     }
     
-    /* STUBBORN TEXT BOX REFACTOR */
+    /* FIX THE BORING LOGIN BOX CONTAINER */
+    [data-testid="stForm"], form {
+        background-color: rgba(255, 255, 255, 0.5) !important;
+        border-radius: 24px !important;
+        border: 2px solid rgba(255, 255, 255, 0.6) !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        padding: 40px !important;
+        box-shadow: 0px 10px 30px rgba(161, 140, 209, 0.2) !important;
+    }
+    
+    /* FIX THE BORING LOGIN INPUT BOXES */
+    [data-testid="stForm"] input, 
+    div[data-testid="stForm"] div[data-baseweb="input"] {
+        background-color: rgba(255, 255, 255, 0.6) !important;
+        border: 2px solid #c29ffa !important;
+        border-radius: 12px !important;
+        color: #3d2e4f !important;
+    }
+    
+    /* Text color fallback inside input elements */
+    [data-testid="stForm"] input {
+        color: #3d2e4f !important;
+    }
+    
+    /* STUBBORN TEXT AREA REFACTOR (INNER JOURNAL DASHBOARD) */
     .stTextArea textarea, 
     div[data-testid="stTextArea"] > div,
     div[data-testid="stTextArea"] > div > div {
@@ -37,7 +62,7 @@ st.markdown("""
         font-weight: 500 !important;
     }
     
-    /* Active focus state when the user is typing */
+    /* Active focus state when typing */
     .stTextArea textarea:focus, div[data-testid="stTextArea"] > div:focus-within {
         border-color: #a18cd1 !important;
         box-shadow: 0 0 10px rgba(161, 140, 209, 0.5) !important;
@@ -57,8 +82,8 @@ st.markdown("""
         font-family: 'Helvetica Neue', Arial, sans-serif !important;
     }
     
-    /* Beautiful pastel action buttons */
-    div.stButton > button:first-child {
+    /* Beautiful pastel buttons (Targets both Login and Save buttons) */
+    div.stButton > button:first-child, form button[type="submit"] {
         background: linear-gradient(90deg, #a18cd1 0%, #fbc2eb 100%) !important;
         color: white !important;
         border: none !important;
@@ -66,15 +91,16 @@ st.markdown("""
         padding: 12px 28px !important;
         font-weight: bold !important;
         box-shadow: 0px 5px 15px rgba(161, 140, 209, 0.4) !important;
-        transition: all 0.3s ease;
+        transition: all 0.3s ease !important;
+        width: auto !important;
     }
     
-    div.stButton > button:first-child:hover {
-        transform: translateY(-2px);
+    div.stButton > button:first-child:hover, form button[type="submit"]:hover {
+        transform: translateY(-2px) !important;
         box-shadow: 0px 8px 20px rgba(161, 140, 209, 0.6) !important;
     }
     
-    /* NEW: Custom Memory Card Styling (Replaces the broken expander) */
+    /* Custom Memory Card Styling */
     .memory-card {
         background-color: rgba(255, 255, 255, 0.55) !important;
         border-radius: 16px !important;
@@ -179,7 +205,6 @@ if not user_entries:
     st.info("No entries saved in this timeline yet.")
 else:
     for entry in reversed(user_entries):
-        # Render a custom styled HTML block card container
         st.markdown(f"""
             <div class="memory-card">
                 <div class="memory-date">🔮 Memory from {entry['timestamp']}</div>
