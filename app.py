@@ -356,6 +356,27 @@ if not st.session_state.authenticated:
 username = st.session_state.username
 name = st.session_state.name
 
+# journal_db must exist before the sidebar renders now, since the sidebar
+# shows entry stats that depend on it.
+if "journal_db" not in st.session_state:
+    st.session_state.journal_db = {}
+if username not in st.session_state.journal_db:
+    st.session_state.journal_db[username] = []
+
+user_entries = st.session_state.journal_db[username]
+_streak = compute_streak(user_entries)
+
+
+def mood_breakdown(entries):
+    """Count entries per mood, only including moods that were actually used
+    (so the sidebar doesn't show a wall of zero-count moods)."""
+    counts = {}
+    for e in entries:
+        m = e.get("mood", "😐 Neutral")
+        counts[m] = counts.get(m, 0) + 1
+    return counts
+
+
 with st.sidebar:
     st.write(f"✨ Welcome back, **{name}**")
     if st.button("Logout"):
@@ -363,19 +384,25 @@ with st.sidebar:
         st.session_state.username = ""
         st.rerun()
 
+    st.markdown("---")
+
+    if _streak > 0:
+        st.markdown(
+            f'<div class="streak-badge">🔥 {_streak} day{"s" if _streak != 1 else ""} streak</div>',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown(f"**{len(user_entries)}** entr{'y' if len(user_entries) == 1 else 'ies'} saved")
+
+    breakdown = mood_breakdown(user_entries)
+    if breakdown:
+        st.caption("Mood breakdown")
+        st.markdown(
+            " &nbsp; ".join(f"{mood.split(' ')[0]} {count}" for mood, count in breakdown.items()),
+            unsafe_allow_html=True,
+        )
+
 st.title("🔮 My Dreamy Gemini Journal")
-
-if "journal_db" not in st.session_state:
-    st.session_state.journal_db = {}
-if username not in st.session_state.journal_db:
-    st.session_state.journal_db[username] = []
-
-_streak = compute_streak(st.session_state.journal_db[username])
-if _streak > 0:
-    st.markdown(
-        f'<div class="streak-badge">🔥 {_streak} day{"s" if _streak != 1 else ""} streak</div>',
-        unsafe_allow_html=True,
-    )
 
 @st.cache_resource
 def get_gemini_client():
@@ -480,7 +507,6 @@ with st.container(key="reflection_card"):
 
 st.markdown("---")
 st.subheader("📚 Saved Memories")
-user_entries = st.session_state.journal_db[username]
 if not user_entries:
     st.info("No entries saved in this timeline yet.")
 else:
