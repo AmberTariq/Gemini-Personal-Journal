@@ -35,16 +35,12 @@ st.markdown("""
         -webkit-text-fill-color: #3d2e4f !important;
     }
     
-    /* FIX THE BORING LOGIN BOX CONTAINER */
-    .login-container {
-        background-color: rgba(255, 255, 255, 0.45) !important;
-        border-radius: 24px !important;
-        border: 2px solid rgba(255, 255, 255, 0.6) !important;
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        padding: 40px !important;
-        box-shadow: 0px 10px 30px rgba(161, 140, 209, 0.2) !important;
-        margin-top: 40px;
+    /* HIDE THE UNWANTED "VISIBILITY" TEXT STRING FALLBACK */
+    button[data-testid="stInputActionButton"] span, 
+    .stTextInput button span, 
+    button div {
+        font-size: 0px !important;
+        color: transparent !important;
     }
     
     /* High contrast placeholders */
@@ -120,19 +116,14 @@ if "username" not in st.session_state:
 # 2. Render Login Form if User is Not Authenticated
 if not st.session_state.authenticated:
     st.title("🔮 Personal Gemini Journal")
-    
-    # Custom HTML container layout wrapping core input fields
-    st.markdown('<div class="login-container">', unsafe_allow_html=True)
     st.subheader("Login")
     
     input_user = st.text_input("Username")
-    input_pass = st.text_input("Password", type="password") # Native password toggle with perfect layout icon
+    input_pass = st.text_input("Password", type="password")
     
     login_btn = st.button("Login")
-    st.markdown('</div>', unsafe_allow_html=True)
     
     if login_btn:
-        # Match against our configuration secrets layout
         if 'credentials' in st.secrets and input_user in st.secrets['credentials']['usernames']:
             correct_pass = st.secrets['credentials']['usernames'][input_user]['password']
             if input_pass == correct_pass:
