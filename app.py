@@ -259,6 +259,23 @@ st.markdown("""
         border: 1px solid rgba(161, 140, 209, 0.3) !important;
         border-radius: 14px !important;
     }
+
+    /* Mobile: the fixed 40px/32px card padding eats too much of a ~375px
+       phone screen, and the horizontal mood row needs to wrap instead of
+       forcing a horizontal scrollbar. [role="radiogroup"] is a stable ARIA
+       attribute — safer to target than Streamlit's internal class names,
+       since it exists for accessibility and doesn't change between versions. */
+    @media (max-width: 640px) {
+        div.st-key-login_card,
+        div.st-key-reflection_card {
+            padding: 20px !important;
+        }
+
+        div[role="radiogroup"] {
+            flex-wrap: wrap !important;
+            row-gap: 10px !important;
+        }
+    }
     </style>
 """, unsafe_allow_html=True)
 
