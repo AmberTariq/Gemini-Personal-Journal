@@ -36,7 +36,7 @@ st.markdown("""
         -webkit-text-fill-color: #3d2e4f !important;
     }
     
-          /* FORCEFULLY CONVERT THE STUBBORN "VISIBILITY" TEXT INTO A PASTEL EYE ICON */
+    /* FORCEFULLY CONVERT THE STUBBORN "VISIBILITY" TEXT INTO A PASTEL EYE ICON */
     button[data-testid="stInputActionButton"],
     div[data-baseweb="input"] button,
     .stTextInput button {
@@ -84,7 +84,7 @@ st.markdown("""
         border-radius: 50% !important;
         display: block !important;
     }
-
+    
     /* FIX THE BORING LOGIN BOX CONTAINER */
     [data-testid="stForm"], form {
         background-color: rgba(255, 255, 255, 0.45) !important;
