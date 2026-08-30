@@ -36,7 +36,7 @@ st.markdown("""
         -webkit-text-fill-color: #3d2e4f !important;
     }
     
-    /* FORCEFULLY CONVERT THE STUBBORN "VISIBILITY" TEXT INTO A PASTEL EYE ICON */
+    /* PERMANENT EYE ICON FIX: Inject an authentic Unicode Symbol instead of text strings */
     button[data-testid="stInputActionButton"],
     div[data-baseweb="input"] button,
     .stTextInput button {
@@ -51,7 +51,7 @@ st.markdown("""
         border: none !important;
     }
 
-    /* Completely hide the default raw font text word without deleting the button cell */
+    /* Hide the 'visibility' characters completely by collapsing the inner box */
     button[data-testid="stInputActionButton"] div, 
     .stTextInput button span,
     .stTextInput code {
@@ -61,36 +61,18 @@ st.markdown("""
         display: none !important;
     }
 
-    /* Build a clean, pastel-matching CSS eye icon outline shape exactly centered */
+    /* Inject a stable, high-contrast digital unicode eye element text layout string */
     button[data-testid="stInputActionButton"]::before, 
     div[data-baseweb="input"] button::before {
-        content: "" !important;
+        content: "👁️" !important;
         position: absolute !important;
         top: 50% !important;
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
-        width: 18px !important;
-        height: 11px !important;
-        border: 2px solid #6c538c !important;
-        border-radius: 50% 50% !important;
+        font-size: 18px !important;
+        color: #6c538c !important;
+        visibility: visible !important;
         display: block !important;
-        z-index: 10 !important;
-    }
-
-    /* Build the inner pupil dot perfectly inside the eye icon */
-    button[data-testid="stInputActionButton"]::after, 
-    div[data-baseweb="input"] button::after {
-        content: "" !important;
-        position: absolute !important;
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        width: 5px !important;
-        height: 5px !important;
-        background-color: #6c538c !important;
-        border-radius: 50% !important;
-        display: block !important;
-        z-index: 11 !important;
     }
     
     /* FIX THE BORING LOGIN BOX CONTAINER */
